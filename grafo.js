@@ -195,3 +195,4 @@ function start() {
   games = mergeGames(games);
   drawGraph();
 }
+start();
