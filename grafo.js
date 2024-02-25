@@ -20,8 +20,6 @@
       this.label = label;
       this.sx = sx;
       this.dx = dx;
-      this.x = null;
-      this.y = null;
       this.clickable = true;
       this.depth = depth;
     }
@@ -40,7 +38,7 @@
     let newGames = [];
     for (let i = 0; i < games.length; i++) {
         for (let j = i + 1; j < games.length; j++) {
-            if (games[i].depth === games[j].depth) {
+            if (games[i].depth === games[j].depth && graph.nodes.find(node => node.id === games[i].label).clicked && graph.nodes.find(node => node.id === games[j].label).clicked){
                 // Create a new GameTree by merging the current pair of games
                 games[i].clickable = false;
                 games[j].clickable = false;
@@ -49,8 +47,8 @@
                     games[i].depth - 1,
                     games[i],
                     games[j]
+              
                 );
-
                 // Add the merged game to the newGames array
                 newGames.push(mergedGame);
 
@@ -65,9 +63,11 @@
                 break;
             }
         }
+        
     }
-
-    //console.log(newGames);
+    // Add the remaining games to the newGames array
+    newGames = newGames.concat(games);
+    console.log(newGames);
     return newGames;
   }
 
@@ -82,7 +82,9 @@
     graph.nodes.push({
         id: game.label,
         x: canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1),
-        y: canvas.height * (game.depth + 1) / (maxDepth + 2)
+        y: canvas.height * (game.depth + 1) / (maxDepth + 2),
+        clickable: game.clickable,
+        clicked: false
     });
     numNodes[game.depth]++;
     if (game.sx != null) {
@@ -113,19 +115,71 @@
     ctx.lineTo(targetNode.x, targetNode.y);
     ctx.stroke();
   }
+
+  function handleclick(node) {
+    console.log(node.id + " cliccato");
+    node.clicked = true;
+    let lastlen = games.length;
+    games = mergeGames(games);
+    if(lastlen != games.length) {
+      drawGraph();
+    }
+  }
+  function clickEvent(event) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+
+    // Controlla se il clic è avvenuto all'interno del cerchio del nodo
+    if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
+      // Esegui azioni desiderate quando il nodo (bottone) è cliccato
+      handleclick(node);
+    }
+  };
+    
   function drawNode(node) {
     ctx.fillStyle = 'white';
     let nodeSize = Math.min(canvas.width, canvas.height) * 0.075; // Adjust the factor as needed
+  
+    // Draw the button shadow
+    ctx.shadowColor = 'black';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = -2;
+    ctx.shadowOffsetY = 0.5;
+  
+    // Draw the node circle
     ctx.beginPath();
     ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
+  
+    // Reset shadow properties
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  
     ctx.fillStyle = 'black';
-    let fontSize = nodeSize * 0.8/(Math.sqrt((node.id.length))); // Adjust the factor as needed
+    let fontSize = nodeSize * 0.8 / (Math.sqrt((node.id.length))); // Adjust the factor as needed
     ctx.font = `${fontSize}px Arial`;
-    ctx.fillText(node.id, node.x-3/4*nodeSize, node.y, nodeSize*2);
+    ctx.fillText(node.id, node.x - 3 / 4 * nodeSize, node.y, nodeSize * 2);
     ctx.fillStyle = 'white';
+    if (node.clickable) {
+      console.log(node.id + " cliccabile");
+      canvas.addEventListener('click', function (event) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+    
+        // Controlla se il clic è avvenuto all'interno del cerchio del nodo
+        if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
+          // Esegui azioni desiderate quando il nodo (bottone) è cliccato
+          handleclick(node);
+        }
+      });
+    }
   }
+  
 
    // Function to draw the graph
   function drawGraph() {
@@ -135,6 +189,9 @@
     for(i = 0; i <= maxDepth; i++) {
       numNodes[i] = 0;
     }
+
+    graph.nodes = [];
+    graph.edges = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawTrees(games);
     // Draw edges
@@ -190,9 +247,6 @@ function start() {
     games.push(new GameTree(teams[i], maxDepth));
   }
 
-  games = mergeGames(games);
-  games = mergeGames(games);
-  games = mergeGames(games);
   drawGraph();
 }
 start();
