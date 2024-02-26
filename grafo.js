@@ -9,18 +9,23 @@
   var oldCanvasHeight = window.innerHeight;
 
   let maxDepth = 3;
-  
+  //sortare i nodi per profondità
+  //le label dei nodi devono essere uniche, bugfixxa
+  // problema di aggiornamento label :)))))))
 
-  let teams = ["A", "B", "C", "D", "E", "F", "G", "H"];
+  let teams = ["A", "B", "C","D", "E", "F", "G", "H"];
   let games = [];
   numNodes = [];
   
   class GameTree {
+    static idCounter = 0;
+    
     constructor(label, depth, sx=null, dx=null) {
-      this.label = label;
+      this.label = label+ '_' + GameTree.idCounter++;
       this.sx = sx;
       this.dx = dx;
       this.clickable = true;
+      this.clicked = false;
       this.depth = depth;
     }
   }
@@ -32,18 +37,47 @@
   }
 
  
- 
+  function updateWinner(games){
+    for(let i = 0; i < games.length; i++) {
+      //console.log(graph.nodes.find(node => node.id === games[i].label));
+      //console.log(graph.nodes.find(node => node.id === games[i].label).clicked);
+      
+      console.log("grafo", graph)
+      let nodosx = graph.nodes.find(node => node.id === games[i].sx.label);
+      let nododx = graph.nodes.find(node => node.id === games[i].dx.label);
+      
+      console.log("nodo sinistro cliccato: ", nodosx, nodosx.clicked)
+      if(games[i].sx != null &&  nodosx.clicked) {
+        games[i].label = games[i].sx.label.split("_")[0]+'_' + GameTree.idCounter++;
+        //nodo.id = games[i].label;
+        games[i].sx.clicked = true;
+        games[i].sx.clickable = false;
+        games[i].dx.clickable = false;
+      }
+      if(games[i].dx != null && nododx.clicked) {
+        games[i].label = games[i].dx.label.split("_")[0]+'_' + GameTree.idCounter++;
+        //nodo.id = games[i].label;
+        games[i].dx.clicked = true;
+        games[i].sx.clickable = false;
+        games[i].dx.clickable = false;
+      }
+      console.log("nodi update winner", nodosx, nododx);
+    }
+  }
 
-  function mergeGames(games) {
+
+  function mergeGames(games, first = false) {
     let newGames = [];
     for (let i = 0; i < games.length; i++) {
         for (let j = i + 1; j < games.length; j++) {
-            if (games[i].depth === games[j].depth && graph.nodes.find(node => node.id === games[i].label).clicked && graph.nodes.find(node => node.id === games[j].label).clicked){
+            //console.log(graph.nodes.find(node => node.id === games[i].label));
+            label1 = games[i].label.split("_")[0];
+            label2 = games[j].label.split("_")[0];
+            if (games[i].depth === games[j].depth && label1 != "?" && label2 != "?"){
                 // Create a new GameTree by merging the current pair of games
-                games[i].clickable = false;
-                games[j].clickable = false;
+
                 let mergedGame = new GameTree(
-                    games[i].label + games[j].label,
+                    "?",
                     games[i].depth - 1,
                     games[i],
                     games[j]
@@ -67,7 +101,8 @@
     }
     // Add the remaining games to the newGames array
     newGames = newGames.concat(games);
-    console.log(newGames);
+    newGames.sort((a, b) => a.depth - b.depth);
+    console.log("newGames" ,newGames);
     return newGames;
   }
 
@@ -78,13 +113,15 @@
   };
 
   function drawTree(game) {
-    console.log(game.label, game.depth, numNodes[game.depth] + 1, 2 ** game.depth + 1, canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1), canvas.height * (game.depth + 1) / (maxDepth + 2))
+
+    console.log("drawTree", game.label, "cliccabile", game.clickable, "cliccato",  game.clicked)
+    //console.log(game.label, game.depth, numNodes[game.depth] + 1, 2 ** game.depth + 1, canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1), canvas.height * (game.depth + 1) / (maxDepth + 2))
     graph.nodes.push({
         id: game.label,
         x: canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1),
         y: canvas.height * (game.depth + 1) / (maxDepth + 2),
         clickable: game.clickable,
-        clicked: false
+        clicked: game.clicked
     });
     numNodes[game.depth]++;
     if (game.sx != null) {
@@ -101,6 +138,8 @@
 
 
   function drawTrees(games) {  
+    graph.nodes = [];
+    graph.edges = [];
     for(i = 0; i < games.length; i++) 
       drawTree(games[i]);
   }
@@ -117,9 +156,15 @@
   }
 
   function handleclick(node) {
-    console.log(node.id + " cliccato");
     node.clicked = true;
+    graph.nodes.find(n => n.id === node.id).clicked = true;
+    console.log(node.id + " cliccato", node.clicked, node);
     let lastlen = games.length;
+    //let lastGame = JSON.parse(JSON.stringify(games));
+    console.log("Before updateWinner:", node);
+    updateWinner(games);
+    console.log("After updateWinner:", node);
+    drawGraph();
     games = mergeGames(games);
     if(lastlen != games.length) {
       drawGraph();
@@ -162,10 +207,10 @@
     ctx.fillStyle = 'black';
     let fontSize = nodeSize * 0.8 / (Math.sqrt((node.id.length))); // Adjust the factor as needed
     ctx.font = `${fontSize}px Arial`;
-    ctx.fillText(node.id, node.x - 3 / 4 * nodeSize, node.y, nodeSize * 2);
+    ctx.fillText(node.id.split("_")[0], node.x - node.id.length / 10 * nodeSize, node.y, nodeSize * 2);
     ctx.fillStyle = 'white';
     if (node.clickable) {
-      console.log(node.id + " cliccabile");
+      //console.log(node.id + " cliccabile");
       canvas.addEventListener('click', function (event) {
         const rect = canvas.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
@@ -190,8 +235,6 @@
       numNodes[i] = 0;
     }
 
-    graph.nodes = [];
-    graph.edges = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawTrees(games);
     // Draw edges
@@ -246,6 +289,7 @@ function start() {
   for (i = 0; i<teams.length; i++) {
     games.push(new GameTree(teams[i], maxDepth));
   }
+  games = mergeGames(games, true);
 
   drawGraph();
 }
