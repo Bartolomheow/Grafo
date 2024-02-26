@@ -12,8 +12,15 @@
   //sortare i nodi per profondità
   //le label dei nodi devono essere uniche, bugfixxa
   // problema di aggiornamento label :)))))))
+  // mi sa che c'è un problema di bottoni non eliminati :))))
 
-  let teams = ["A", "B", "C","D", "E", "F", "G", "H"];
+  let teams = ["Alberico", "Bartolomeo", "Coline","Damon", "Everest", "Francesco", "Geronimo", "Hilton"];
+  let maxteamlength = 0;
+  for(i = 0; i < teams.length; i++) {
+    if(teams[i].length > maxteamlength) {
+      maxteamlength = teams[i].length;
+    }
+  }
   let games = [];
   numNodes = [];
   
@@ -42,11 +49,11 @@
       //console.log(graph.nodes.find(node => node.id === games[i].label));
       //console.log(graph.nodes.find(node => node.id === games[i].label).clicked);
       
-      console.log("grafo", graph)
+      //console.log("grafo", graph.nodes)
       let nodosx = graph.nodes.find(node => node.id === games[i].sx.label);
       let nododx = graph.nodes.find(node => node.id === games[i].dx.label);
       
-      console.log("nodo sinistro cliccato: ", nodosx, nodosx.clicked)
+      //console.log("nodo sinistro cliccato: ", nodosx, nodosx.clicked)
       if(games[i].sx != null &&  nodosx.clicked) {
         games[i].label = games[i].sx.label.split("_")[0]+'_' + GameTree.idCounter++;
         //nodo.id = games[i].label;
@@ -61,7 +68,7 @@
         games[i].sx.clickable = false;
         games[i].dx.clickable = false;
       }
-      console.log("nodi update winner", nodosx, nododx);
+      //console.log("nodi update winner", nodosx, nododx);
     }
   }
 
@@ -114,7 +121,7 @@
 
   function drawTree(game) {
 
-    console.log("drawTree", game.label, "cliccabile", game.clickable, "cliccato",  game.clicked)
+    //console.log("drawTree", game.label, "cliccabile", game.clickable, "cliccato",  game.clicked)
     //console.log(game.label, game.depth, numNodes[game.depth] + 1, 2 ** game.depth + 1, canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1), canvas.height * (game.depth + 1) / (maxDepth + 2))
     graph.nodes.push({
         id: game.label,
@@ -170,76 +177,82 @@
       drawGraph();
     }
   }
-  function clickEvent(event) {
+
+  let clickhandler = []
+
+  function curryClickEvent(node, nodeSize) {
+    return function (event) {
+        clickEvent(event, node, nodeSize);
+    };
+}
+
+  function clickEvent(event, node, nodeSize) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
     // Controlla se il clic è avvenuto all'interno del cerchio del nodo
     if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
-      // Esegui azioni desiderate quando il nodo (bottone) è cliccato
-      handleclick(node);
+        // Esegui azioni desiderate quando il nodo (bottone) è cliccato
+        handleclick(node);
     }
-  };
-    
-  function drawNode(node) {
+  }
+
+function drawNode(node) {
     ctx.fillStyle = 'white';
     let nodeSize = Math.min(canvas.width, canvas.height) * 0.075; // Adjust the factor as needed
-  
+
     // Draw the button shadow
     ctx.shadowColor = 'black';
     ctx.shadowBlur = 5;
     ctx.shadowOffsetX = -2;
     ctx.shadowOffsetY = 0.5;
-  
+
     // Draw the node circle
     ctx.beginPath();
     ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
-  
+
     // Reset shadow properties
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-  
+
     ctx.fillStyle = 'black';
-    let fontSize = nodeSize * 0.8 / (Math.sqrt((node.id.length))); // Adjust the factor as needed
+    scrivi = node.id.split("_")[0]
+    let fontSize = nodeSize * 0.8 / (Math.sqrt(scrivi.length)); // Adjust the factor as needed
     ctx.font = `${fontSize}px Arial`;
-    ctx.fillText(node.id.split("_")[0], node.x - node.id.length / 10 * nodeSize, node.y, nodeSize * 2);
+    ctx.fillText(scrivi, node.x - (scrivi.length) / (maxteamlength + 2) * nodeSize, node.y, nodeSize * 2);
     ctx.fillStyle = 'white';
     if (node.clickable) {
-      //console.log(node.id + " cliccabile");
-      canvas.addEventListener('click', function (event) {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-    
-        // Controlla se il clic è avvenuto all'interno del cerchio del nodo
-        if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
-          // Esegui azioni desiderate quando il nodo (bottone) è cliccato
-          handleclick(node);
-        }
-      });
+        clickhandler.push(curryClickEvent(node, nodeSize));
+        canvas.addEventListener('click', clickhandler[clickhandler.length - 1]);
     }
-  }
-  
+}
+
+function removeAllClickHandlers() {
+  clickhandler.forEach(handler => {
+      canvas.removeEventListener('click', handler);
+  });
+  clickhandler = [];
+}
+
 
    // Function to draw the graph
   function drawGraph() {
     
     // Clear the canvas
-    console.log(games);     
     for(i = 0; i <= maxDepth; i++) {
       numNodes[i] = 0;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    removeAllClickHandlers();
     drawTrees(games);
     // Draw edges
     graph.edges.forEach(drawEdge);
-
     // Draw nodes
     graph.nodes.forEach(drawNode);
   }
