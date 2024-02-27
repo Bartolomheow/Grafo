@@ -17,6 +17,10 @@
   // gestire i bottoni premuti :)
 
   let teams = ["Alberico", "Bartolomeo", "Marta","Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
+  if (teams.length > 2**maxDepth) {
+    teams = teams.slice(0, 2**maxDepth);
+  }
+
   let maxteamlength = 0;
   for(i = 0; i < teams.length; i++) {
     if(teams[i].length > maxteamlength) {
@@ -67,13 +71,13 @@
   }
 
   function handleGoBackArrowClick() {
-    console.log("Before pop: ", stackModifiche.stack, games);
+    //console.log("Before pop: ", stackModifiche.stack, games);
     popped = stackModifiche.pop();
-    console.log("Popped: ", popped);
+    //console.log("Popped: ", popped);
     if(popped != undefined) {
       games = popped;
     }
-    console.log("After pop: ", stackModifiche.stack, games);
+    //console.log("After pop: ", stackModifiche.stack, games);
     drawGraph(true);
   };
  
@@ -216,12 +220,33 @@
   }
 
   let clickhandler = []
+  let overhandler = []
 
   function curryClickEvent(node, nodeSize) {
     return function (event) {
         clickEvent(event, node, nodeSize);
     };
-}
+  }
+/*
+  function curryOverEvent(node, nodeSize) {
+    return function (event) {
+        overEvent(event, node, nodeSize);
+    };
+  }
+
+  function overEvent(event, node, nodeSize) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+
+    // Controlla se il clic è avvenuto all'interno del cerchio del nodo
+    if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
+        // Esegui azioni desiderate quando il nodo (bottone) è cliccato
+        console.log("over", node.id);
+        drawCircle(node.x, node.y, nodeSize, 'light gray', node.id.split("_")[0], true);
+    }
+  }
+*/
 
   function clickEvent(event, node, nodeSize) {
     const rect = canvas.getBoundingClientRect();
@@ -235,45 +260,76 @@
     }
   }
 
-function drawNode(node) {
-    ctx.fillStyle = 'white';
-    let nodeSize = Math.min(canvas.width, canvas.height) * nodeConst; // Adjust the factor as needed
 
-    // Draw the button shadow
-    ctx.shadowColor = 'black';
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = -2;
-    ctx.shadowOffsetY = 0.5;
 
-    // Draw the node circle
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    // Reset shadow properties
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    ctx.fillStyle = 'black';
-    scrivi = node.id.split("_")[0]
-    let fontSize = nodeSize * 0.8 / (Math.sqrt(scrivi.length)); // Adjust the factor as needed
-    ctx.font = `${fontSize}px Arial`;
-    ctx.fillText(scrivi, node.x - (scrivi.length) / (maxteamlength + 2) * nodeSize, node.y, nodeSize * 2);
-    ctx.fillStyle = 'white';
-    if (node.clickable && scrivi != "?") {
-        clickhandler.push(curryClickEvent(node, nodeSize));
-        canvas.addEventListener('click', clickhandler[clickhandler.length - 1]);
-    }
+    
+    // Function to draw the node circle
+function drawNodeCircle(x, y, radius) {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.stroke();
 }
+
+// Function to draw the node label
+function drawNodeLabel(text, x, y, nodeSize) {
+  ctx.fillStyle = 'black';
+  let fontSize = nodeSize * 0.8 / (Math.sqrt(text.length)); // Adjust the factor as needed
+  ctx.font = `${fontSize}px Arial`;
+  ctx.fillText(text, x - (text.length) / (maxteamlength + 2) * nodeSize, y, nodeSize * 2);
+  ctx.fillStyle = 'white';
+}
+
+// Function to draw the shadow
+function drawNodeShadow() {
+  ctx.shadowColor = 'black';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetX = -2;
+  ctx.shadowOffsetY = 0.5;
+}
+
+// Function to reset shadow properties
+function resetShadowProperties() {
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+// Function to draw the entire node
+function drawNode(node) {
+  ctx.fillStyle = 'white';
+  let nodeSize = Math.min(canvas.width, canvas.height) * nodeConst; // Adjust the factor as needed
+
+  // Draw the button shadow
+  drawNodeShadow();
+
+  // Draw the node circle
+  drawNodeCircle(node.x, node.y, nodeSize);
+
+  // Reset shadow properties
+  resetShadowProperties();
+
+  // Draw the node label
+  scrivi = node.id.split("_")[0];
+  drawNodeLabel(scrivi, node.x, node.y, nodeSize);
+
+  if (node.clickable && scrivi !== "?") {
+      clickhandler.push(curryClickEvent(node, nodeSize));
+      canvas.addEventListener('click', clickhandler[clickhandler.length - 1]);
+  }
+}
+
 
 function removeAllClickHandlers() {
   clickhandler.forEach(handler => {
       canvas.removeEventListener('click', handler);
   });
+  overhandler.forEach(handler => {
+      canvas.removeEventListener('mouseover', handler);
+  });
   clickhandler = [];
+  overhandler = [];
 }
 
 
@@ -297,8 +353,6 @@ function removeAllClickHandlers() {
   // Call the drawGraph function
   
 
-  // Redraw the graph on window resize
- // Redraw the graph on window resize
 // Redraw the graph on window resize
 window.addEventListener('resize', function() {
   // Clear the canvas and update canvas dimensions
