@@ -7,14 +7,16 @@
   canvas.height = window.innerHeight;
   var oldCanvasWidth = window.innerWidth;
   var oldCanvasHeight = window.innerHeight;
+  let nodeConst = 0.06;
 
-  let maxDepth = 3;
+  let maxDepth = 4;
   //sortare i nodi per profondità
   //le label dei nodi devono essere uniche, bugfixxa
   // problema di aggiornamento label :)))))))
   // mi sa che c'è un problema di bottoni non eliminati :))))
+  // gestire i bottoni premuti :)
 
-  let teams = ["Alberico", "Bartolomeo", "Coline","Damon", "Everest", "Francesco", "Geronimo", "Hilton"];
+  let teams = ["Alberico", "Bartolomeo", "Marta","Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
   let maxteamlength = 0;
   for(i = 0; i < teams.length; i++) {
     if(teams[i].length > maxteamlength) {
@@ -37,12 +39,43 @@
     }
   }
 
+  class LimitedStack {
+    constructor(limit) {
+      this.limit = limit;
+      this.stack = [];
+    }
+    
+
+    push(value) {
+      if (this.stack.length >= this.limit) {
+        this.stack.shift();
+      }
+      this.stack.push(JSON.parse(JSON.stringify(value)));
+    }
+
+    pop() { 
+      return this.stack.pop();
+    }
+  }
+
+  let stackModifiche = new LimitedStack(10);
+
   function assert(condition, message) {
     if (!condition) {
       throw new Error(message || "Assertion failed");
     }
   }
 
+  function handleGoBackArrowClick() {
+    console.log("Before pop: ", stackModifiche.stack, games);
+    popped = stackModifiche.pop();
+    console.log("Popped: ", popped);
+    if(popped != undefined) {
+      games = popped;
+    }
+    console.log("After pop: ", stackModifiche.stack, games);
+    drawGraph(true);
+  };
  
   function updateWinner(games){
     for(let i = 0; i < games.length; i++) {
@@ -107,7 +140,7 @@
         
     }
     // Add the remaining games to the newGames array
-    newGames = newGames.concat(games);
+    newGames = games.concat(newGames);
     newGames.sort((a, b) => a.depth - b.depth);
     console.log("newGames" ,newGames);
     return newGames;
@@ -163,19 +196,23 @@
   }
 
   function handleclick(node) {
+    //drawPressedButton(node);
+    if(confirm("Ha vinto " + node.id.split("_")[0] + "?") == false){
+      return;
+    }
     node.clicked = true;
     graph.nodes.find(n => n.id === node.id).clicked = true;
-    console.log(node.id + " cliccato", node.clicked, node);
+    //console.log(node.id + " cliccato", node.clicked, node);
     let lastlen = games.length;
     //let lastGame = JSON.parse(JSON.stringify(games));
-    console.log("Before updateWinner:", node);
+    //console.log("Before updateWinner:", node);
+    stackModifiche.push(games);
     updateWinner(games);
-    console.log("After updateWinner:", node);
-    drawGraph();
+    //console.log("After updateWinner:", node);
+    
+
     games = mergeGames(games);
-    if(lastlen != games.length) {
-      drawGraph();
-    }
+    drawGraph();
   }
 
   let clickhandler = []
@@ -200,7 +237,7 @@
 
 function drawNode(node) {
     ctx.fillStyle = 'white';
-    let nodeSize = Math.min(canvas.width, canvas.height) * 0.075; // Adjust the factor as needed
+    let nodeSize = Math.min(canvas.width, canvas.height) * nodeConst; // Adjust the factor as needed
 
     // Draw the button shadow
     ctx.shadowColor = 'black';
@@ -226,7 +263,7 @@ function drawNode(node) {
     ctx.font = `${fontSize}px Arial`;
     ctx.fillText(scrivi, node.x - (scrivi.length) / (maxteamlength + 2) * nodeSize, node.y, nodeSize * 2);
     ctx.fillStyle = 'white';
-    if (node.clickable) {
+    if (node.clickable && scrivi != "?") {
         clickhandler.push(curryClickEvent(node, nodeSize));
         canvas.addEventListener('click', clickhandler[clickhandler.length - 1]);
     }
@@ -241,7 +278,7 @@ function removeAllClickHandlers() {
 
 
    // Function to draw the graph
-  function drawGraph() {
+  function drawGraph(back = false) {
     
     // Clear the canvas
     for(i = 0; i <= maxDepth; i++) {
@@ -296,7 +333,6 @@ function start() {
   for(i = 0; i <= maxDepth; i++) {
     numNodes[i] = 0;
   }
-
   assert(teams.length === 2 ** maxDepth, "Number of teams must be a power of 2");
 
   for (i = 0; i<teams.length; i++) {

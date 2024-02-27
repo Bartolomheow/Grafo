@@ -1,8 +1,46 @@
 body {
-    margin: 0;
-    overflow: hidden;
-  }
+  margin: 0;
+  overflow: hidden;
+  position: relative; /* Ensure the arrow div is positioned relative to the body */
+}
 
-  canvas {
-    display: block;
-  }
+canvas {
+  display: block;
+}
+
+.arrow {
+  position: absolute;
+  top: 10px; /* Adjust the top position as needed */
+  left: 10px; /* Adjust the left position as needed */
+  width: 30px; /* Set the width of the arrow div */
+  height: 30px; /* Set the height of the arrow div */
+  background-color: black; /* Set the background color of the arrow div */
+  clip-path: polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%); /* Create a right arrow using clip-path */
+  transform: scaleX(-1);
+  transition: transform 0.3s; /* Add a transition for a smoother effect */
+  cursor: pointer;
+}
+
+.arrow:hover {
+  transform: scaleX(-1) scale(1.2); /* Scale up on hover */
+}
+
+.gobackarrow {
+  position: absolute;
+  top: 10px; /* Adjust the top position as needed */
+  left: 60px; /* Adjust the left position to be next to the first arrow */
+  width: 30px; /* Set the width of the go back arrow div */
+  height: 30px; /* Set the height of the go back arrow div */
+  background-image: url("Assets/arrow.png"); /* Set the background image of the go back arrow div */
+  background-size: cover;
+  border-radius: 50%; /* Create a circular shape */
+  transition: transform 0.3s; /* Add a transition for a smoother effect */
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+
+}
+
+.gobackarrow:hover {
+  transform: scale(1.2); /* Scale up on hover */
+}
