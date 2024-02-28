@@ -70,6 +70,14 @@
     }
   }
 
+  document.addEventListener("keydown", function(event) {
+    // Check if the "Ctrl" key is pressed and the key pressed is "Z"
+    if (event.ctrlKey && event.key === "z") {
+      // Handle the "Ctrl+Z" event
+      handleGoBackArrowClick();
+    }
+  });
+
   function handleGoBackArrowClick() {
     //console.log("Before pop: ", stackModifiche.stack, games);
     popped = stackModifiche.pop();
@@ -222,44 +230,11 @@
   let clickhandler = []
   let overhandler = []
 
-  function curryClickEvent(node, nodeSize) {
+  function curryEvent(node, nodeSize, functionName) {
     return function (event) {
-        clickEvent(event, node, nodeSize);
+        functionName(event, node, nodeSize);
     };
   }
-/*
-  function curryOverEvent(node, nodeSize) {
-    return function (event) {
-        overEvent(event, node, nodeSize);
-    };
-  }
-
-  function overEvent(event, node, nodeSize) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
-    // Controlla se il clic è avvenuto all'interno del cerchio del nodo
-    if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
-        // Esegui azioni desiderate quando il nodo (bottone) è cliccato
-        console.log("over", node.id);
-        drawCircle(node.x, node.y, nodeSize, 'light gray', node.id.split("_")[0], true);
-    }
-  }
-*/
-
-  function clickEvent(event, node, nodeSize) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
-    // Controlla se il clic è avvenuto all'interno del cerchio del nodo
-    if (Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2) <= Math.pow(nodeSize, 2)) {
-        // Esegui azioni desiderate quando il nodo (bottone) è cliccato
-        handleclick(node);
-    }
-  }
-
 
 
     
@@ -296,42 +271,97 @@ function resetShadowProperties() {
   ctx.shadowOffsetY = 0;
 }
 
+function createButton(text, top, left, className, node, radius) {
+  var button = document.createElement("button");
+  button.innerHTML = text;
+  let boxShadowdefault = "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset";
+  let boxShadowpressed = "rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset";
+  let boxShadowhover = "rgba(45, 85, 255, 0.4) 5px 5px, rgba(45, 85, 255, 0.3) 10px 10px, rgba(45, 85, 255, 0.2) 15px 15px, rgba(45, 85, 255, 0.1) 20px 20px, rgba(45, 85, 255, 0.05) 25px 25px";
+
+  // Position the button
+  button.style.position = "absolute";
+  button.style.top = top-radius + "px";
+  button.style.left = left-radius + "px";
+
+  button.style.width = 2*radius + "px";
+  button.style.height = 2*radius + "px";
+
+  button.style.textShadow = "1px 1px 2px rgba(0,0,0,0.5)";
+
+  button.style.backgroundColor = "rgba(173,216,230, 1)";
+  //button.style.border = "none";
+
+  button.style.color = "black";
+
+  button.style.shadowBlur = 5;
+  button.style.shadowColor = "black";
+  button.style.shadowOffsetX = -2;
+  button.style.shadowOffsetY = 2;
+  button.style.boxShadow = boxShadowdefault;
+  
+
+
+
+  // Add class to the button
+  button.classList.add(className);
+
+  // Make the button circular
+  button.style.borderRadius = "50%";
+
+  if (node.clickable && scrivi !== "?") {
+  // Add click event listener to the button
+    button.addEventListener("click", function() {
+        button.style.boxShadow= boxShadowpressed;
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        sleep(1).then(() => { handleclick(node); });
+
+    });
+
+    button.addEventListener("mouseover", function() {
+        button.style.cursor = "pointer";
+        button.style.boxShadow= boxShadowhover+", " + boxShadowdefault; 
+    });
+    button.addEventListener("mouseout", function() {
+        button.style.boxShadow= boxShadowdefault;
+    });
+  }
+  // Append the button to the body
+  document.body.appendChild(button);
+}
+
+
 // Function to draw the entire node
 function drawNode(node) {
   ctx.fillStyle = 'white';
   let nodeSize = Math.min(canvas.width, canvas.height) * nodeConst; // Adjust the factor as needed
 
   // Draw the button shadow
-  drawNodeShadow();
+  //drawNodeShadow();
 
   // Draw the node circle
-  drawNodeCircle(node.x, node.y, nodeSize);
+  //drawNodeCircle(node.x, node.y, nodeSize);
 
   // Reset shadow properties
-  resetShadowProperties();
+  //resetShadowProperties();
 
   // Draw the node label
   scrivi = node.id.split("_")[0];
-  drawNodeLabel(scrivi, node.x, node.y, nodeSize);
+  drawNodeLabel("", node.x, node.y, nodeSize);
 
-  if (node.clickable && scrivi !== "?") {
-      clickhandler.push(curryClickEvent(node, nodeSize));
-      canvas.addEventListener('click', clickhandler[clickhandler.length - 1]);
-  }
+  createButton(scrivi, node.y, node.x, "removeable", node, nodeSize);
+  
 }
 
 
-function removeAllClickHandlers() {
-  clickhandler.forEach(handler => {
-      canvas.removeEventListener('click', handler);
-  });
-  overhandler.forEach(handler => {
-      canvas.removeEventListener('mouseover', handler);
-  });
-  clickhandler = [];
-  overhandler = [];
-}
+function removeSpecificButtons() {
+  var removeableButtons = document.querySelectorAll(".removeable");
 
+  removeableButtons.forEach(function(button) {
+      button.remove();
+  });
+}
 
    // Function to draw the graph
   function drawGraph(back = false) {
@@ -342,7 +372,7 @@ function removeAllClickHandlers() {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    removeAllClickHandlers();
+    removeSpecificButtons();
     drawTrees(games);
     // Draw edges
     graph.edges.forEach(drawEdge);
