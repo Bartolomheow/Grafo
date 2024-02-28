@@ -19,10 +19,12 @@ canvas {
   transform: scaleX(-1);
   transition: transform 0.3s; /* Add a transition for a smoother effect */
   cursor: pointer;
+  border: none;
 }
 
 .arrow:hover {
   transform: scaleX(-1) scale(1.2); /* Scale up on hover */
+  background-color: #ff5050;
 }
 
 .gobackarrow {
@@ -33,7 +35,6 @@ canvas {
   height: 30px; /* Set the height of the go back arrow div */
   background-image: url("Assets/arrow.png"); /* Set the background image of the go back arrow div */
   background-size: cover;
-  border-radius: 50%; /* Create a circular shape */
   transition: transform 0.3s; /* Add a transition for a smoother effect */
   cursor: pointer;
   border: none;
@@ -43,4 +44,5 @@ canvas {
 
 .gobackarrow:hover {
   transform: scale(1.2); /* Scale up on hover */
+  background-image: url("Assets/arrowselect.png")
 }

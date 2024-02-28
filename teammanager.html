@@ -4,42 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Manager</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-
-        input[type="text"] {
-            padding: 8px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #ccc;
-        }
-
-        button {
-            background-color: #ff6666;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #ff5050;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="teammanager.css" />
 </head>
 <body>
 
@@ -47,34 +12,23 @@
 
     <label for="teamName">Enter Team Name:</label>
     <input type="text" id="teamName" placeholder="Team Name">
-    <button onclick="addTeam()">Add Team</button>
+    <button onclick="handleNewTeam()">Add Team</button>
+    <button onclick="confirmReset()">Reset</button>
+
+    <h3>
+    <label for="maxTeams">Choose Max Teams:</label>
+    <select id="maxTeams" onchange="updateMaxTeams()">
+        <option value="8">8 Teams</option>
+        <option value="16">16 Teams</option>
+        <option value="32">32 Teams</option>
+        <option value="64">64 Teams</option>
+    </select>
+    </h3>
 
     <h2>Teams:</h2>
     <ul id="teamList"></ul>
+    <button class="arrow" onclick="handleArrow()"></button>
 
-    <script>
-        function addTeam() {
-            var teamNameInput = document.getElementById("teamName");
-            var teamName = teamNameInput.value.trim();
-
-            if (teamName !== "") {
-                var teamList = document.getElementById("teamList");
-                var li = document.createElement("li");
-                li.innerHTML = `
-                    <span>${teamName}</span>
-                    <button onclick="deleteTeam(this)">Delete</button>
-                `;
-                teamList.appendChild(li);
-                teamNameInput.value = "";
-            }
-        }
-
-        function deleteTeam(button) {
-            var li = button.parentNode;
-            var ul = li.parentNode;
-            ul.removeChild(li);
-        }
-    </script>
-
+    <script src="teammanager.js"></script>
 </body>
 </html>

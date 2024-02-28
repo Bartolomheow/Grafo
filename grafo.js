@@ -17,9 +17,6 @@
   // gestire i bottoni premuti :)
 
   let teams = ["Alberico", "Bartolomeo", "Marta","Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
-  if (teams.length > 2**maxDepth) {
-    teams = teams.slice(0, 2**maxDepth);
-  }
 
   let maxteamlength = 0;
   for(i = 0; i < teams.length; i++) {
@@ -414,16 +411,32 @@ function updateGraphSize() {
 }
 
 function start() {
-  for(i = 0; i <= maxDepth; i++) {
-    numNodes[i] = 0;
-  }
+  // Get maxTeams and teams from local storage
+  const storedMaxTeams = localStorage.getItem("maxTeams");
+  const storedTeams = localStorage.getItem("teams");
+
+  // Use the stored values or set default values
+  const maxTeams = storedMaxTeams ? parseInt(storedMaxTeams) : 8;
+  teams = storedTeams ? JSON.parse(storedTeams) : ["Alberico", "Bartolomeo", "Marta", "Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
+
+  // Set maxDepth based on the length of teams
+  maxDepth = Math.log2(teams.length);
+  nodeConst = 0.1-0.012*maxDepth;
+  // Reset the games array
+  games = [];
+
+  // Check if the number of teams is a power of 2
   assert(teams.length === 2 ** maxDepth, "Number of teams must be a power of 2");
 
-  for (i = 0; i<teams.length; i++) {
+  // Initialize the games array
+  for (let i = 0; i < teams.length; i++) {
     games.push(new GameTree(teams[i], maxDepth));
   }
-  games = mergeGames(games, true);
 
+  // Merge games and draw the graph
+  games = mergeGames(games, true);
   drawGraph();
 }
+
+// Call the start function
 start();
