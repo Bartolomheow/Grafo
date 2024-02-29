@@ -10,11 +10,7 @@
   let nodeConst = 0.06;
 
   let maxDepth = 4;
-  //sortare i nodi per profondità
-  //le label dei nodi devono essere uniche, bugfixxa
-  // problema di aggiornamento label :)))))))
-  // mi sa che c'è un problema di bottoni non eliminati :))))
-  // gestire i bottoni premuti :)
+
 
   let teams = ["Alberico", "Bartolomeo", "Marta","Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
 
@@ -25,7 +21,7 @@
     }
   }
   let games = [];
-  numNodes = [];
+  let numNodes = [];
   
   class GameTree {
     static idCounter = 0;
@@ -76,41 +72,35 @@
   });
 
   function handleGoBackArrowClick() {
-    //console.log("Before pop: ", stackModifiche.stack, games);
+
     popped = stackModifiche.pop();
-    //console.log("Popped: ", popped);
+
     if(popped != undefined) {
       games = popped;
     }
-    //console.log("After pop: ", stackModifiche.stack, games);
+
     drawGraph(true);
   };
  
   function updateWinner(games){
     for(let i = 0; i < games.length; i++) {
-      //console.log(graph.nodes.find(node => node.id === games[i].label));
-      //console.log(graph.nodes.find(node => node.id === games[i].label).clicked);
       
-      //console.log("grafo", graph.nodes)
       let nodosx = graph.nodes.find(node => node.id === games[i].sx.label);
       let nododx = graph.nodes.find(node => node.id === games[i].dx.label);
       
-      //console.log("nodo sinistro cliccato: ", nodosx, nodosx.clicked)
+    
       if(games[i].sx != null &&  nodosx.clicked) {
         games[i].label = games[i].sx.label.split("_")[0]+'_' + GameTree.idCounter++;
-        //nodo.id = games[i].label;
         games[i].sx.clicked = true;
         games[i].sx.clickable = false;
         games[i].dx.clickable = false;
       }
       if(games[i].dx != null && nododx.clicked) {
         games[i].label = games[i].dx.label.split("_")[0]+'_' + GameTree.idCounter++;
-        //nodo.id = games[i].label;
         games[i].dx.clicked = true;
         games[i].sx.clickable = false;
         games[i].dx.clickable = false;
       }
-      //console.log("nodi update winner", nodosx, nododx);
     }
   }
 
@@ -119,7 +109,7 @@
     let newGames = [];
     for (let i = 0; i < games.length; i++) {
         for (let j = i + 1; j < games.length; j++) {
-            //console.log(graph.nodes.find(node => node.id === games[i].label));
+
             label1 = games[i].label.split("_")[0];
             label2 = games[j].label.split("_")[0];
             if (games[i].depth === games[j].depth && label1 != "?" && label2 != "?"){
@@ -163,8 +153,7 @@
 
   function drawTree(game) {
 
-    //console.log("drawTree", game.label, "cliccabile", game.clickable, "cliccato",  game.clicked)
-    //console.log(game.label, game.depth, numNodes[game.depth] + 1, 2 ** game.depth + 1, canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1), canvas.height * (game.depth + 1) / (maxDepth + 2))
+   
     graph.nodes.push({
         id: game.label,
         x: canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1),
@@ -205,21 +194,10 @@
   }
 
   function handleclick(node) {
-    //drawPressedButton(node);
-    if(confirm("Ha vinto " + node.id.split("_")[0] + "?") == false){
-      return;
-    }
     node.clicked = true;
     graph.nodes.find(n => n.id === node.id).clicked = true;
-    //console.log(node.id + " cliccato", node.clicked, node);
-    let lastlen = games.length;
-    //let lastGame = JSON.parse(JSON.stringify(games));
-    //console.log("Before updateWinner:", node);
     stackModifiche.push(games);
-    updateWinner(games);
-    //console.log("After updateWinner:", node);
-    
-
+    updateWinner(games)
     games = mergeGames(games);
     drawGraph();
   }
@@ -286,7 +264,6 @@ function createButton(text, top, left, className, node, radius) {
   button.style.textShadow = "1px 1px 2px rgba(0,0,0,0.5)";
 
   button.style.backgroundColor = "rgba(173,216,230, 1)";
-  //button.style.border = "none";
 
   button.style.color = "black";
 
@@ -332,17 +309,7 @@ function createButton(text, top, left, className, node, radius) {
 // Function to draw the entire node
 function drawNode(node) {
   ctx.fillStyle = 'white';
-  let nodeSize = Math.min(canvas.width, canvas.height) * nodeConst; // Adjust the factor as needed
-
-  // Draw the button shadow
-  //drawNodeShadow();
-
-  // Draw the node circle
-  //drawNodeCircle(node.x, node.y, nodeSize);
-
-  // Reset shadow properties
-  //resetShadowProperties();
-
+  let nodeSize = nodeConst; 
   // Draw the node label
   scrivi = node.id.split("_")[0];
   drawNodeLabel("", node.x, node.y, nodeSize);
@@ -419,9 +386,11 @@ function start() {
   const maxTeams = storedMaxTeams ? parseInt(storedMaxTeams) : 8;
   teams = storedTeams ? JSON.parse(storedTeams) : ["Alberico", "Bartolomeo", "Marta", "Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
 
+
+  canvasConst = teams.length > 16 ? teams.length/16:1 
   // Set maxDepth based on the length of teams
   maxDepth = Math.log2(teams.length);
-  nodeConst = 0.1-0.012*maxDepth;
+  nodeConst = Math.min(canvas.width/(maxDepth*maxDepth+2), canvas.height/maxDepth)/2;
   // Reset the games array
   games = [];
 

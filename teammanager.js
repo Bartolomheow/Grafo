@@ -18,6 +18,7 @@ window.addEventListener("load", function() {
 
 function handleArrow(){
     if(teams.length == maxTeams){
+        saveTeamsLocally();
         window.location.href='grafo.html'
     }
 }
@@ -66,7 +67,7 @@ function updateMaxTeams() {
 function addTeam() {
     const teamNameInput = document.getElementById("teamName");
     let teamName = teamNameInput.value.trim();
-    teamName = teamName.replace(/[^\w\s]/gi, '');
+    teamName = teamName.replace("?", '');
 
     if (teamName !== "" && teams.length < maxTeams) {
         const teamList = document.getElementById("teamList");
@@ -102,6 +103,7 @@ function saveTeamsLocally() {
 
     localStorage.setItem("maxTeams", maxTeams);
     localStorage.setItem("teams", JSON.stringify(teams));
+    updateTeamCount();
 }
 
 function loadTeamsLocally() {
@@ -127,5 +129,11 @@ function loadTeamsLocally() {
             maxTeams = parseInt(storedMaxTeams);
         }
     }
+    updateTeamCount();
+}
+
+function updateTeamCount() {
+    const teamCountSpan = document.getElementById("teamCount");
+    teamCountSpan.textContent = teams.length;
 }
 
