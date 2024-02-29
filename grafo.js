@@ -8,13 +8,13 @@
   var oldCanvasWidth = window.innerWidth;
   var oldCanvasHeight = window.innerHeight;
   let nodeConst = 0.06;
-
+  let adjust = 1  
   let maxDepth = 4;
 
 
   let teams = ["Alberico", "Bartolomeo", "Marta","Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
 
-  let maxteamlength = 0;
+  let maxteamlength = 0;adjust
   for(i = 0; i < teams.length; i++) {
     if(teams[i].length > maxteamlength) {
       maxteamlength = teams[i].length;
@@ -158,6 +158,7 @@
         id: game.label,
         x: canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1),
         y: canvas.height * (game.depth + 1) / (maxDepth + 2),
+        //numNodes[game.depth]<2**(game.depth)/2 ? canvas.height * (game.depth + 1) / (maxDepth + 2) : canvas.height * (maxDepth-game.depth + 1) / (maxDepth + 2) 
         clickable: game.clickable,
         clicked: game.clicked
     });
@@ -289,7 +290,7 @@ function createButton(text, top, left, className, node, radius) {
         function sleep(ms) {
           return new Promise(resolve => setTimeout(resolve, ms));
         }
-        sleep(1).then(() => { handleclick(node); });
+        sleep(100).then(() => { handleclick(node); });
 
     });
 
@@ -348,16 +349,6 @@ function removeSpecificButtons() {
   
 
 // Redraw the graph on window resize
-window.addEventListener('resize', function() {
-  // Clear the canvas and update canvas dimensions
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  // Update graph size and redraw
-  updateGraphSize();
-  drawGraph();
-});
 
 
 
@@ -387,11 +378,21 @@ function start() {
   teams = storedTeams ? JSON.parse(storedTeams) : ["Alberico", "Bartolomeo", "Marta", "Damon", "Everest", "Francesco", "Geronimo", "Hilton", "Icaro", "Jago", "Karl", "Lorenzo", "Michele", "Napoleone", "Oscar", "Pietro"];
 
 
-  canvasConst = teams.length > 16 ? teams.length/16:1 
   // Set maxDepth based on the length of teams
   maxDepth = Math.log2(teams.length);
   nodeConst = Math.min(canvas.width/(maxDepth*maxDepth+2), canvas.height/maxDepth)/2;
   // Reset the games array
+  if (teams.length > 16) {
+    adjust = teams.length/16
+    canvas.width = window.innerWidth * adjust;
+    canvas.height = window.innerHeight * adjust;
+    oldCanvasHeight = canvas.height
+    oldCanvasWidth = canvas.width
+    nodeConst = Math.min(canvas.width / (2**maxDepth + 2), canvas.height / maxDepth+1) / 2;
+  } else {
+    nodeConst = Math.min(canvas.width / (2**maxDepth + 2), canvas.height / maxDepth+1) / 2;
+  }
+
   games = [];
 
   // Check if the number of teams is a power of 2
@@ -409,3 +410,20 @@ function start() {
 
 // Call the start function
 start();
+
+window.onload = function() {
+  window.requestAnimationFrame(function() {
+    window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight);
+  });
+};
+
+window.addEventListener('resize', function() {
+  // Clear the canvas and update canvas dimensions
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width = window.innerWidth*adjust;
+  canvas.height = window.innerHeight*adjust;
+
+  // Update graph size and redraw
+  updateGraphSize();
+  drawGraph();
+});

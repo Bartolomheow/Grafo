@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  overflow: hidden;
+  overflow: auto;
   position: relative; /* Ensure the arrow div is positioned relative to the body */
 }
 
@@ -9,7 +9,7 @@ canvas {
 }
 
 .arrow {
-  position: absolute;
+  position: fixed;
   top: 10px; /* Adjust the top position as needed */
   left: 10px; /* Adjust the left position as needed */
   width: 30px; /* Set the width of the arrow div */
@@ -28,7 +28,7 @@ canvas {
 }
 
 .gobackarrow {
-  position: absolute;
+  position: fixed;
   top: 10px; /* Adjust the top position as needed */
   left: 60px; /* Adjust the left position to be next to the first arrow */
   width: 30px; /* Set the width of the go back arrow div */
