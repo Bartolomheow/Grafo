@@ -152,13 +152,20 @@
   };
 
   function drawTree(game) {
-
-   
+   let xval = canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1);
+   let yval = canvas.height * (game.depth + 1) / (maxDepth + 2);
+   if(maxDepth >= 5){ 
+      let firstHalf = numNodes[game.depth]<2**(game.depth)/2;
+      xval = firstHalf ? canvas.width * (numNodes[game.depth] + 1) / (2 ** (game.depth-1) + 1) : canvas.width * (numNodes[game.depth]-2**(game.depth)/2 + 1) / (2 ** (game.depth-1) + 1)
+      yval = firstHalf ? canvas.height * (maxDepth+1+game.depth) / (2*maxDepth + 2) : canvas.height * (maxDepth-game.depth + 1) / (2*maxDepth + 2)
+      if(game.depth == 0){
+        xval = canvas.width/2
+      }
+  }
     graph.nodes.push({
         id: game.label,
-        x: canvas.width * (numNodes[game.depth] + 1) / (2 ** game.depth + 1),
-        y: canvas.height * (game.depth + 1) / (maxDepth + 2),
-        //numNodes[game.depth]<2**(game.depth)/2 ? canvas.height * (game.depth + 1) / (maxDepth + 2) : canvas.height * (maxDepth-game.depth + 1) / (maxDepth + 2) 
+        x:  xval,
+        y: yval,
         clickable: game.clickable,
         clicked: game.clicked
     });
@@ -380,7 +387,6 @@ function start() {
 
   // Set maxDepth based on the length of teams
   maxDepth = Math.log2(teams.length);
-  nodeConst = Math.min(canvas.width/(maxDepth*maxDepth+2), canvas.height/maxDepth)/2;
   // Reset the games array
   if (teams.length > 16) {
     adjust = teams.length/16

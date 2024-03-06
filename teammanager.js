@@ -20,6 +20,8 @@ function handleArrow(){
     if(teams.length == maxTeams){
         saveTeamsLocally();
         window.location.href='grafo.html'
+    }else{
+        alert("You have to add all the teams")
     }
 }
 
